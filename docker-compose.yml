@@ -19,6 +19,30 @@ services:
       - pgdata:/var/lib/postgresql/data
       - ./data:/data
     shm_size: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d smartdemo"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    image: smartdemo-app
+    container_name: smartdemo-app
+    command: ["sleep", "infinity"]
+    stdin_open: true
+    tty: true
+    environment:
+      SMART_DSN: postgresql://postgres:demo@db:5432/smartdemo
+      APARTMENT_ROWS: ${APARTMENT_ROWS:-3000000}
+      BUILDING_ROWS: ${BUILDING_ROWS:-300000}
+      LANDLORD_ROWS: ${LANDLORD_ROWS:-100000}
+      DISTRICT_ROWS: ${DISTRICT_ROWS:-1000}
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   pgdata:

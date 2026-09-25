@@ -30,7 +30,25 @@ python run_demo.py sweep                   # selectivity sweep -> results/sweep.
 python run_demo.py break-it [--undo]       # stretch goal: stale statistics break correctness
 ```
 
-Connection string and data sizes live in `.env`. Every scenario prints the derived
+### Or run everything in Docker
+
+The `app` service is an Ubuntu 24.04 image with the requirements installed, so no local
+Python is needed. It starts alongside the database and idles, so you `exec` commands into it.
+The project directory is bind-mounted, so `results/` and `charts/` are written back to the host.
+
+```bash
+docker compose up -d --build                          # db + app (app is built on first run)
+docker compose exec app python -m scripts.setup_db
+docker compose exec app python -m pytest tests
+docker compose exec app python run_demo.py s1         # any run_demo.py command works the same way
+docker compose exec app bash                          # or drop into a shell
+```
+
+Inside the container the connection string points at the `db` service; the values in `.env`
+still control data sizes.
+
+Connection string and data sizes live in `.env`. Common `psql`, `EXPLAIN` and maintenance
+commands are collected in `POSTGRES_CHEATSHEET.md`. Every scenario prints the derived
 predicates, the rewritten SQL, the plan, the timings and a green/red **validity check**
 that fingerprints both result sets inside the database.
 
